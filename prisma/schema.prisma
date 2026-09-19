@@ -1,0 +1,43 @@
+// Schema do banco de dados - Workshop de Empreendedorismo
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Shift {
+  MANHA
+  NOITE
+  AMBOS
+}
+
+model Participant {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(120)
+  cpf       String   @unique @db.VarChar(11) // somente dígitos, sem máscara
+  shift     Shift
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("participants")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(150)
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@map("posts")
+}
+
+model User {
+  id           Int    @id @default(autoincrement())
+  email        String @unique @db.VarChar(255)
+  passwordHash String @map("password_hash")
+
+  @@map("users")
+}

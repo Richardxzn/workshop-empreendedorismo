@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/* Paleta "caderno": tinta azul de caneta, margem vermelha, marca-texto amarelo */
+:root {
+  --folha: #fdfdfb;
+  --pauta: #e6edf9;
+  --tinta: #17224d;
+  --caneta: #2340c8;
+  --caneta-escura: #1a32a0;
+  --linha: #d6e0f3;
+  --margem: #e5484d;
+  --erro: #b4232a;
+  --marca: #ffe14d;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-folha: var(--folha);
+  --color-tinta: var(--tinta);
+  --color-caneta: var(--caneta);
+  --color-caneta-escura: var(--caneta-escura);
+  --color-linha: var(--linha);
+  --color-margem: var(--margem);
+  --color-erro: var(--erro);
+  --color-marca: var(--marca);
+  --font-display: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--folha);
+    color: var(--tinta);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--caneta);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--marca);
+    color: var(--tinta);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    * {
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Página inteira = folha de caderno pautada */
+  .pagina {
+    min-height: 100dvh;
+    background-color: var(--folha);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 31px,
+      var(--pauta) 31px,
+      var(--pauta) 32px
+    );
+  }
+
+  /* Coluna de conteúdo com a linha vermelha da margem do caderno */
+  .miolo {
+    --margem-x: 0.75rem;
+    position: relative;
+    margin-inline: auto;
+    max-width: 72rem;
+    padding-left: calc(var(--margem-x) + 1.25rem);
+    padding-right: 1.25rem;
+  }
+  .miolo::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--margem-x);
+    width: 2px;
+    background: var(--margem);
+    opacity: 0.6;
+  }
+  @media (min-width: 768px) {
+    .miolo {
+      --margem-x: 2.5rem;
+      padding-left: calc(var(--margem-x) + 2rem);
+      padding-right: 2rem;
+    }
+  }
+
+  .titulo-hero {
+    font-size: clamp(1.75rem, 9vw, 3.75rem);
+  }
+  @media (min-width: 1024px) {
+    .titulo-hero {
+      font-size: clamp(2.75rem, 4.6vw, 3.75rem);
+    }
+  }
+}
