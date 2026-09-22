@@ -1,27 +1,10 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { EVENT } from "@/lib/event";
-import { formatDateLong } from "@/lib/format";
 import HeroImage from "@/components/HeroImage";
 import RegistrationForm from "@/components/RegistrationForm";
 import { btnOutline, btnPrimary } from "@/components/ui";
 
-// Sempre busca os avisos atuais no banco (novo aviso aparece sem rebuild)
-export const dynamic = "force-dynamic";
-
-async function loadPosts() {
-  try {
-    const posts = await prisma.post.findMany({ orderBy: { createdAt: "desc" } });
-    return { posts, failed: false };
-  } catch (e) {
-    console.error(e);
-    return { posts: [], failed: true };
-  }
-}
-
-export default async function HomePage() {
-  const { posts, failed } = await loadPosts();
-
+export default function HomePage() {
   return (
     <div className="pagina">
       <div className="miolo">
@@ -56,9 +39,9 @@ export default async function HomePage() {
               <a href="#inscricao" className={btnPrimary}>
                 Quero me inscrever
               </a>
-              <a href="#avisos" className={`${btnOutline} px-6 py-3 text-base`}>
-                Ver avisos
-              </a>
+              <Link href="/postagens" className={`${btnOutline} px-6 py-3 text-base`}>
+                Ver postagens
+              </Link>
             </div>
           </div>
 
@@ -81,40 +64,19 @@ export default async function HomePage() {
           <RegistrationForm />
         </section>
 
-        {/* Avisos */}
-        <section id="avisos" className="scroll-mt-6 py-12 md:py-16">
-          <h2 className="font-display text-3xl font-bold md:text-4xl">
-            Avisos e atualizações do evento
-          </h2>
-
-          {failed ? (
-            <p className="mt-6 max-w-xl border-2 border-erro bg-white p-4 font-bold text-erro">
-              Não foi possível carregar os avisos agora. Recarregue a página em instantes.
-            </p>
-          ) : posts.length === 0 ? (
-            <p className="mt-6 max-w-xl text-lg">
-              Ainda não há avisos. Quando os organizadores publicarem novidades, elas aparecem aqui.
-            </p>
-          ) : (
-            <ol className="mt-8 divide-y-2 divide-linha">
-              {posts.map((post) => (
-                <li key={post.id} className="grid gap-2 py-6 md:grid-cols-[10rem_1fr] md:gap-8">
-                  <time
-                    dateTime={post.createdAt.toISOString()}
-                    className="text-sm font-bold text-tinta/70 md:pt-2"
-                  >
-                    {formatDateLong(post.createdAt)}
-                  </time>
-                  <article>
-                    <h3 className="font-display text-xl font-bold md:text-2xl">{post.title}</h3>
-                    <p className="mt-2 max-w-[65ch] whitespace-pre-line text-lg leading-relaxed">
-                      {post.content}
-                    </p>
-                  </article>
-                </li>
-              ))}
-            </ol>
-          )}
+        {/* Acesso às postagens */}
+        <section className="border-t-2 border-linha py-10 md:py-12">
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <div>
+              <h2 className="font-display text-2xl font-bold md:text-3xl">Postagens do evento</h2>
+              <p className="mt-2 max-w-2xl text-tinta/80">
+                Acompanhe comunicados e atualizações publicados pela organização do workshop.
+              </p>
+            </div>
+            <Link href="/postagens" className={btnOutline}>
+              Entrar e ver postagens
+            </Link>
+          </div>
         </section>
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-linha py-8 text-sm text-tinta/70">

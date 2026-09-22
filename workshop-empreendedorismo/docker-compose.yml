@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: workshop-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: workshop
+      POSTGRES_PASSWORD: workshop123
+      POSTGRES_DB: workshop
+    ports:
+      - "5432:5432"
+    volumes:
+      - workshop_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  workshop_postgres_data:
