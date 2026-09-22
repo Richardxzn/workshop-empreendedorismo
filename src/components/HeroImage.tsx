@@ -57,7 +57,9 @@ export default function HeroImage() {
           />
         )}
       </div>
-      {!failed && <figcaption className="mt-2 text-sm text-tinta/70">{credit}</figcaption>}
+      {!failed && credit && (
+        <figcaption className="mt-2 text-sm text-tinta/70">{credit}</figcaption>
+      )}
     </figure>
   );
 }

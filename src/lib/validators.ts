@@ -19,6 +19,14 @@ export const participantSchema = z.object({
   shift: shiftSchema,
 });
 
+const imageDataSchema = z
+  .string()
+  .max(3_000_000, "A foto ficou grande demais. Escolha uma imagem de até 2 MB.")
+  .refine(
+    (value) => /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(value),
+    "Formato de imagem inválido. Use JPG, PNG ou WEBP."
+  );
+
 export const postSchema = z.object({
   title: z
     .string({ message: "Informe o título" })
@@ -30,6 +38,7 @@ export const postSchema = z.object({
     .trim()
     .min(3, "Conteúdo muito curto")
     .max(5000, "Conteúdo muito longo (máx. 5000 caracteres)"),
+  imageData: imageDataSchema.nullish().transform((value) => value ?? null),
 });
 
 export const loginSchema = z.object({

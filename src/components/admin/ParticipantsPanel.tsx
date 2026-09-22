@@ -14,7 +14,7 @@ type Filter = "TODOS" | ShiftValue;
 const SEGMENTS: { value: Filter; label: string; key: keyof Counts }[] = [
   { value: "TODOS", label: "Total geral", key: "total" },
   { value: "MANHA", label: "Total manhã", key: "MANHA" },
-  { value: "NOITE", label: "Total noite", key: "NOITE" },
+  { value: "NOITE", label: "Total tarde", key: "NOITE" },
   { value: "AMBOS", label: "Total ambos", key: "AMBOS" },
 ];
 

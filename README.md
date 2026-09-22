@@ -5,15 +5,16 @@ Projeto em **Next.js + TypeScript + Tailwind CSS + Prisma + PostgreSQL**.
 ## O que funciona
 
 - Página pública do workshop
+- Página pública de postagens em `/postagens`
 - Formulário de inscrição
 - Validação de CPF
 - Um CPF só pode se inscrever uma vez
-- Escolha de turno: manhã, noite ou ambos
-- Avisos do evento vindos do banco PostgreSQL
+- Escolha de turno: manhã, tarde ou ambos
+- Postagens do evento vindas do banco PostgreSQL
 - Área do organizador com login
 - Lista e filtros de inscritos
 - Exportação dos inscritos em CSV
-- Criação e exclusão de avisos
+- Criação e exclusão de postagens somente pelo administrador
 
 ## 1. Programas necessários
 
@@ -134,3 +135,12 @@ npm run dev
 ## Produção
 
 Não publique o `.env` no GitHub. Em produção, use uma senha forte para o administrador, gere outro `AUTH_SECRET` e configure uma `DATABASE_URL` do PostgreSQL de produção.
+
+## Postagens com fotos
+
+O painel do organizador permite adicionar uma foto opcional (JPG, PNG ou WEBP, até 2 MB) em cada postagem.
+A imagem é salva no PostgreSQL junto com a postagem, portanto não depende do disco temporário da Render.
+Cada postagem também possui um botão **Excluir postagem** no painel do administrador.
+
+Depois de atualizar esta versão, rode `npm run db:setup` localmente para criar o novo campo `image_data` no banco.
+Na Render, o build com `npx prisma db push` também atualiza a tabela automaticamente.

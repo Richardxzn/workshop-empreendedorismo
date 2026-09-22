@@ -21,8 +21,8 @@ const CPF_INVALID = "CPF inválido. Confira os números digitados";
 
 const SHIFT_PHRASE: Record<ShiftValue, string> = {
   MANHA: "no turno da manhã",
-  NOITE: "no turno da noite",
-  AMBOS: "nos dois turnos, manhã e noite",
+  NOITE: "no turno da tarde",
+  AMBOS: "nos dois turnos, manhã e tarde",
 };
 
 // Mesmas regras da API (a API sempre valida de novo)

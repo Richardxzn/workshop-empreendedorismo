@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: "%s | Workshop de Empreendedorismo",
   },
   description:
-    "Inscreva-se no Workshop de Empreendedorismo da escola e acompanhe os avisos do evento.",
+    "Inscreva-se no Workshop de Empreendedorismo da escola e acompanhe as postagens do evento.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

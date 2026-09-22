@@ -1,16 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/client-api";
 import { formatDateTime } from "@/lib/format";
 import type { PostRow } from "@/lib/types";
 import { btnDanger, btnPrimary, errorText, inputBox, labelText, panel } from "@/components/ui";
 
-type FormErrors = { title?: string; content?: string };
+type FormErrors = { title?: string; content?: string; imageData?: string };
+
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function PostsPanel() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [posts, setPosts] = useState<PostRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -19,6 +32,8 @@ export default function PostsPanel() {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [imageData, setImageData] = useState<string | null>(null);
+  const [imageName, setImageName] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState("");
   const [notice, setNotice] = useState("");
@@ -38,6 +53,48 @@ export default function PostsPanel() {
     return () => controller.abort();
   }, []);
 
+  async function chooseImage(file?: File) {
+    setErrors((x) => ({ ...x, imageData: undefined }));
+    setFormError("");
+
+    if (!file) {
+      setImageData(null);
+      setImageName("");
+      return;
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setImageData(null);
+      setImageName("");
+      setErrors((x) => ({ ...x, imageData: "Use uma imagem JPG, PNG ou WEBP." }));
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      setImageData(null);
+      setImageName("");
+      setErrors((x) => ({ ...x, imageData: "A foto deve ter no máximo 2 MB." }));
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setImageData(dataUrl);
+      setImageName(file.name);
+    } catch {
+      setErrors((x) => ({ ...x, imageData: "Não foi possível carregar essa imagem." }));
+    }
+  }
+
+  function clearImage() {
+    setImageData(null);
+    setImageName("");
+    setErrors((x) => ({ ...x, imageData: undefined }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function publish(ev: React.FormEvent<HTMLFormElement>) {
     ev.preventDefault();
     if (saving) return;
@@ -46,14 +103,14 @@ export default function PostsPanel() {
 
     const found: FormErrors = {};
     if (title.trim().length < 3) found.title = "Informe um título com pelo menos 3 caracteres";
-    if (content.trim().length < 3) found.content = "Escreva o conteúdo do aviso";
+    if (content.trim().length < 3) found.content = "Escreva o conteúdo da postagem";
     setErrors(found);
-    if (found.title || found.content) return;
+    if (found.title || found.content || found.imageData) return;
 
     setSaving(true);
     const res = await apiFetch<{ post: PostRow }>("/api/posts", {
       method: "POST",
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({ title, content, imageData }),
     });
     setSaving(false);
 
@@ -61,7 +118,8 @@ export default function PostsPanel() {
       setPosts((list) => [res.data.post, ...list]);
       setTitle("");
       setContent("");
-      setNotice("Aviso publicado. Ele já aparece na página do evento.");
+      clearImage();
+      setNotice("Postagem publicada. Ela já aparece na página pública de postagens.");
     } else if (res.status === 401) {
       router.replace("/admin/login");
     } else if (res.fields) {
@@ -72,7 +130,7 @@ export default function PostsPanel() {
   }
 
   async function remove(post: PostRow) {
-    if (!window.confirm(`Excluir o aviso "${post.title}"? Essa ação não pode ser desfeita.`)) {
+    if (!window.confirm(`Excluir a postagem "${post.title}"? Essa ação não pode ser desfeita.`)) {
       return;
     }
     setDeletingId(post.id);
@@ -92,9 +150,9 @@ export default function PostsPanel() {
 
   return (
     <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,26rem)_1fr]">
-      {/* Novo aviso */}
+      {/* Nova postagem */}
       <form onSubmit={publish} noValidate className={`${panel} self-start`}>
-        <h2 className="font-display text-xl font-bold">Novo aviso</h2>
+        <h2 className="font-display text-xl font-bold">Nova postagem</h2>
 
         <div className="mt-5">
           <label htmlFor="titulo" className={labelText}>
@@ -144,6 +202,48 @@ export default function PostsPanel() {
           )}
         </div>
 
+        <div className="mt-5">
+          <label htmlFor="foto-postagem" className={labelText}>
+            Foto <span className="font-normal text-tinta/60">(opcional)</span>
+          </label>
+          <input
+            ref={fileInputRef}
+            id="foto-postagem"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => void chooseImage(e.target.files?.[0])}
+            aria-invalid={!!errors.imageData}
+            aria-describedby={errors.imageData ? "erro-foto" : "ajuda-foto"}
+            className={`${inputBox} mt-1 file:mr-3 file:rounded file:border-0 file:bg-tinta file:px-3 file:py-1 file:font-bold file:text-white`}
+          />
+          <p id="ajuda-foto" className="mt-1.5 text-sm text-tinta/65">
+            JPG, PNG ou WEBP, até 2 MB. A foto fica salva junto com a postagem.
+          </p>
+          {errors.imageData && (
+            <p id="erro-foto" className={errorText}>
+              {errors.imageData}
+            </p>
+          )}
+
+          {imageData && (
+            <div className="mt-3 overflow-hidden rounded-md border-2 border-tinta/40 bg-white p-2">
+              <img
+                src={imageData}
+                alt="Prévia da foto da postagem"
+                className="max-h-64 w-full rounded object-contain"
+              />
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="min-w-0 truncate text-sm font-bold" title={imageName}>
+                  {imageName}
+                </p>
+                <button type="button" onClick={clearImage} className={btnDanger}>
+                  Remover foto
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {formError && (
           <p role="alert" className="mt-4 font-bold text-erro">
             {formError}
@@ -156,15 +256,18 @@ export default function PostsPanel() {
         )}
 
         <button type="submit" disabled={saving} className={`${btnPrimary} mt-6 w-full`}>
-          {saving ? "Publicando…" : "Publicar aviso"}
+          {saving ? "Publicando…" : "Publicar postagem"}
         </button>
       </form>
 
-      {/* Avisos publicados */}
+      {/* Postagens publicadas */}
       <section aria-labelledby="titulo-publicados">
         <h2 id="titulo-publicados" className="font-display text-xl font-bold">
-          Avisos publicados
+          Postagens publicadas
         </h2>
+        <p className="mt-1 text-sm text-tinta/65">
+          Você pode excluir qualquer postagem pelo botão vermelho abaixo.
+        </p>
 
         {listError && (
           <p role="alert" className="mt-3 font-bold text-erro">
@@ -173,31 +276,41 @@ export default function PostsPanel() {
         )}
 
         {loading ? (
-          <p className="mt-4">Carregando avisos…</p>
+          <p className="mt-4">Carregando postagens…</p>
         ) : loadError ? (
           <p role="alert" className="mt-4 font-bold text-erro">
             {loadError}
           </p>
         ) : posts.length === 0 ? (
-          <p className="mt-4">Nenhum aviso publicado ainda. Use o formulário para criar o primeiro.</p>
+          <p className="mt-4">Nenhuma postagem publicada ainda. Use o formulário para criar a primeira.</p>
         ) : (
           <ul className="mt-4 divide-y-2 divide-linha border-2 border-tinta bg-white">
             {posts.map((post) => (
-              <li key={post.id} className="flex items-start justify-between gap-4 p-4">
-                <div className="min-w-0">
-                  <h3 className="font-display text-lg font-bold">{post.title}</h3>
-                  <p className="text-sm text-tinta/70">{formatDateTime(post.createdAt)}</p>
-                  <p className="mt-2 line-clamp-3 whitespace-pre-line break-words">{post.content}</p>
+              <li key={post.id} className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-display text-lg font-bold">{post.title}</h3>
+                    <p className="text-sm text-tinta/70">{formatDateTime(post.createdAt)}</p>
+                    <p className="mt-2 line-clamp-3 whitespace-pre-line break-words">{post.content}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className={`${btnDanger} shrink-0`}
+                    disabled={deletingId === post.id}
+                    aria-label={`Excluir a postagem ${post.title}`}
+                    onClick={() => remove(post)}
+                  >
+                    {deletingId === post.id ? "Excluindo…" : "Excluir postagem"}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className={`${btnDanger} shrink-0`}
-                  disabled={deletingId === post.id}
-                  aria-label={`Excluir o aviso ${post.title}`}
-                  onClick={() => remove(post)}
-                >
-                  {deletingId === post.id ? "Excluindo…" : "Excluir"}
-                </button>
+
+                {post.imageData && (
+                  <img
+                    src={post.imageData}
+                    alt={`Foto da postagem ${post.title}`}
+                    className="mt-4 max-h-72 w-full rounded-md border-2 border-linha object-contain"
+                  />
+                )}
               </li>
             ))}
           </ul>

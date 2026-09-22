@@ -9,8 +9,8 @@ export const EVENT = {
   locationLabel: "",
 
   heroImage: {
-    src: "https://images.unsplash.com/photo-1729799959058-bda08177a84c?auto=format&fit=crop&w=1400&q=70",
-    alt: "Fachada de um prédio escolar de tijolos, com torre de relógio",
-    credit: "Foto: Roger Starnes Sr / Unsplash",
+    src: "/images/colegio-mestre-paulo-dos-anjos.webp",
+    alt: "Fachada do Colégio Estadual Mestre Paulo dos Anjos",
+    credit: "",
   },
 };

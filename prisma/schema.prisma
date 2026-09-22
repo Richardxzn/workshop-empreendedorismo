@@ -28,6 +28,7 @@ model Post {
   id        Int      @id @default(autoincrement())
   title     String   @db.VarChar(150)
   content   String   @db.Text
+  imageData String?  @db.Text @map("image_data") // foto opcional em data URL
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([createdAt(sort: Desc)])

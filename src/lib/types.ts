@@ -14,5 +14,6 @@ export type PostRow = {
   id: number;
   title: string;
   content: string;
+  imageData: string | null;
   createdAt: string;
 };

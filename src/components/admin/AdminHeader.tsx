@@ -8,7 +8,7 @@ import { btnOutline } from "@/components/ui";
 
 const LINKS = [
   { href: "/admin", label: "Inscritos" },
-  { href: "/admin/avisos", label: "Avisos" },
+  { href: "/admin/avisos", label: "Postagens" },
 ];
 
 export default function AdminHeader() {
